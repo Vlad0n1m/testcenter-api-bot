@@ -2,11 +2,11 @@
 import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
+import requests
+
 logging.basicConfig(level=logging.INFO)
 
-
 def get_free_seats():
-    import requests
 
     url = "https://app.testcenter.kz/ent/student/app/api/v1/app/season/items/26/app-type/items/15/test-org/items/1052/test-period/items?student-test-id=0"
     headers = {
@@ -30,14 +30,12 @@ def get_free_seats():
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
+
         data = response.json()
         res = ''
         for i in data['items']:
             formatted_message = (
                 f"📅 *Дата тестирования:* {i['testDate']}\n"
-                f"⏰ *Время Входа:* {i['enterTime']}\n"
-                f"🚀 *Время Начала:* {i['startTime']}\n"
-                f"🆔 *ID Тестирования:* {i['id']}\n"
                 f"🆓 *Свободных мест:* {i['freePlaceCount']}\n"
             )
 
@@ -58,6 +56,10 @@ dp = Dispatcher(bot)
 async def send_welcome(message: types.Message):
     await message.reply("Я подскажу есть ли свободные места на ЕНТ, отвечаю на любое сообщение. данные из -> https://app.testcenter.kz/")
 
+@dp.message_handler(commands=['check'])
+async def check_status(message: types.Message):
+    status_code = requests.get('https://app.testcenter.kz/').status_code
+    await message.reply(f"Статус код - {status_code}")
 
 @dp.message_handler()
 async def send_welcome(message: types.Message):
